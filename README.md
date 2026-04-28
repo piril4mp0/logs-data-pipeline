@@ -11,13 +11,15 @@
 CREATE TABLE logs.router_logs
 (
     timestamp DateTime,
-    month UInt8,
-    day UInt8,
-    year UInt16,
-    time String,
-    service String,
-    level LowCardinality(String),
-    message String
+    month     UInt8,
+    day       UInt8,
+    year      UInt16,
+    time      String,
+    service   LowCardinality(String),
+    level     LowCardinality(String),
+    message   String,
+    ip        Nullable(String),
+    mac       Nullable(String)
 )
 ENGINE = MergeTree()
 PARTITION BY toYYYYMM(timestamp)
