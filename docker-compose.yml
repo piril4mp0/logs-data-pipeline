@@ -1,0 +1,81 @@
+services:
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "7077:7077"
+      - "8080:8080"
+    volumes:
+      - ./data:/opt/spark-data
+    networks:
+      - spark-net
+
+  spark-worker:
+    image: apache/spark:3.5.1
+    depends_on:
+      - spark-master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    volumes:
+      - ./data:/opt/spark-data
+    networks:
+      - spark-net
+
+  jupyter:
+    build: .
+    image: local-pyspark:latest
+    container_name: jupyter
+    depends_on:
+      - spark-master
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebook:/opt/spark-notebooks
+      - ./data:/opt/spark-data
+    networks:
+      - spark-net
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    environment:
+      - CLICKHOUSE_USER=admin
+      - CLICKHOUSE_PASSWORD=admin
+      - CLICKHOUSE_DB=logs
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    restart: always
+    networks:
+      - spark-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    depends_on:
+      - clickhouse
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - spark-net
+    restart: always
+
+networks:
+  spark-net:
+    driver: bridge
+
+volumes:
+  jupyter-data:
+  clickhouse_data:
+  grafana_data:
