@@ -1,0 +1,11 @@
+__pycache__/
+.venv
+.env
+
+# Jupyter Notebook checkpoints & trash
+.ipynb_checkpoints/
+.Trash-*/
+.Trash/
+notebook/.ipynb_checkpoints/
+notebook/.Trash-*/
+notebook/.Trash/
